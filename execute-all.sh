@@ -12,7 +12,3 @@ URL="$1"
 ./download_and_save_plugin.sh "$URL"
  php endpoint-scanner.php
  ./concatenate-all-reports.sh
-
-# call ai on the demand, instead of always running 
- #./call-ai.sh 2>&1
- semgrep --config "p/php" ./plugin
