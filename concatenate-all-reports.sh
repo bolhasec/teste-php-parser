@@ -10,7 +10,7 @@ fi
 
 # Concatenate all txt files into one
 for file in *.txt; do
-    if [ -f all-endpoint-reports.txt ]; then
+    if [ -f $file ]; then
         cat "$file" >> all-endpoint-reports.txt
         rm "$file"
         # Optionally, add a newline or some separator between files
