@@ -15,6 +15,7 @@ for file in *.txt; do
         rm "$file"
         # Optionally, add a newline or some separator between files
         echo "" >> all-endpoint-reports.txt
+        echo "$file processed and removed"
     fi
 done
 
