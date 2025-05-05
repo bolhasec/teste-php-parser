@@ -10,10 +10,12 @@ fi
 
 # Concatenate all txt files into one
 for file in *.txt; do
-    cat "$file" >> all-endpoint-reports.txt
-    rm "$file"
-    # Optionally, add a newline or some separator between files
-    echo "" >> all-endpoint-reports.txt
+    if [ -f all-endpoint-reports.txt ]; then
+        cat "$file" >> all-endpoint-reports.txt
+        rm "$file"
+        # Optionally, add a newline or some separator between files
+        echo "" >> all-endpoint-reports.txt
+    fi
 done
 
 echo "All files have been concatenated into all-endpoint-reports.txt"
