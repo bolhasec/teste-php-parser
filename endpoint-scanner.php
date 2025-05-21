@@ -145,7 +145,10 @@ foreach ($iterator as $file) {
                 )
             ];
 
-            $filename = sanitize_filename("ajax-{$endpoint['action']}-{$endpoint['privilege']}.txt");
+            // create a random integer for the filename
+            $random_int = random_int(1000, 9999);
+            $filename = sanitize_filename("ajax-{$endpoint['action']}-{$endpoint['privilege']}-{$random_int}.txt");
+            echo "Gerando arquivo: $filename\n";
             file_put_contents(
                 "$output_dir/$filename",
                 "=== AJAX Endpoint ===\n" .
