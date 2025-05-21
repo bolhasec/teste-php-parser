@@ -12,3 +12,4 @@ URL="$1"
 ./download_and_save_plugin.sh "$URL"
  php endpoint-scanner.php
  ./concatenate-all-reports.sh
+./convert-all-endpoint-reports-to-json.sh
