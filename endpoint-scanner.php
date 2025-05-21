@@ -27,6 +27,9 @@ class ClassTrackerVisitor extends NodeVisitorAbstract {
         if ($node instanceof Node\Stmt\Class_) {
             $this->currentClass = $node->name->toString();
             print("Detectada classe: {$this->currentClass}\n");
+            if ($this->currentClass === 'Abstract_API') {
+                throw new \RuntimeException('Skipping Abstract_API class');
+            }
         }
     }
     
@@ -152,6 +155,12 @@ foreach ($iterator as $file) {
 
     } catch (Error $error) {
         echo "Parse error in {$current_file}: {$error->getMessage()}\n";
+    } catch (\RuntimeException $e) {
+        if ($e->getMessage() === 'Skipping Abstract_API class') {
+            echo "Skipping Abstract_API class in file: {$current_file}\n";
+            continue;
+        }
+        throw $e; // Re-throw other runtime exceptions
     }
 }
 
