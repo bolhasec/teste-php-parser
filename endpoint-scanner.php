@@ -64,8 +64,13 @@ foreach ($iterator as $file) {
         $traverser->addVisitor(new ParentConnectingVisitor());
         $traverser->addVisitor($classTracker);
         
-        $ast = $traverser->traverse($ast);
-        print("Classe detectada neste arquivo: " . ($classTracker->currentClass ?: 'Nenhuma') . "\n");
+        try {
+            $ast = $traverser->traverse($ast);
+            print("Classe detectada neste arquivo: " . ($classTracker->currentClass ?: 'Nenhuma') . "\n");
+        } catch (\Throwable $e) {
+            echo "Skipping file due to memory issue: {$current_file}\n";
+            continue;
+        }
         
         // Process REST Endpoints
         $restRoutes = $nodeFinder->find($ast, function($node) {
@@ -182,7 +187,10 @@ function parse_callback($node, $currentClass = null) {
             
             return $classPart && $methodPart ? "{$classPart}::{$methodPart}" : '[Array Callback]';
         }
+        // ⚠️ Fallback to prevent infinite loop
+        return '[Array Callback]';
     }
+    echo $currentClass;
     return get_argument_value($node, $currentClass);
 }
 
