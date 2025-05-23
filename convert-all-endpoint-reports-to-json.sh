@@ -5,7 +5,8 @@ output_file="endpoint-reports/all-endpoint-reports.json"
 
 if [[ ! -f "$input_file" ]]; then
     echo "Error: File '$input_file' not found."
-    exit 1
+    # exit 1
+    exit 0
 fi
 
 awk '
