@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Check if an URL was provided
 if [ "$#" -ne 1 ]; then
@@ -10,6 +11,6 @@ fi
 URL="$1"
 
 ./download_and_save_plugin.sh "$URL"
- php endpoint-scanner.php
- ./concatenate-all-reports.sh
+php endpoint-scanner.php
+./concatenate-all-reports.sh
 ./convert-all-endpoint-reports-to-json.sh

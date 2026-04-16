@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Navigate to the directory containing the reports
-cd endpoint-reports/
+cd "$(dirname "$0")/endpoint-reports"
 
 # Check if 'all-endpoint-reports.txt' exists and remove it to avoid duplicating content
 if [ -f all-endpoint-reports.txt ]; then

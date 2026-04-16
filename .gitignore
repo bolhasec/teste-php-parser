@@ -1,0 +1,8 @@
+# Dependencies
+vendor/
+
+# Downloaded plugin files
+plugin/
+
+# Generated reports
+endpoint-reports/

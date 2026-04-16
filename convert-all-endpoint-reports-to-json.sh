@@ -19,11 +19,23 @@ function escape_json(str) {
     return str
 }
 
-function output_record() {
-    if (action_val != "") {
-        gsub(/^\n+|\n+$/, "", reg_code_val)
-        gsub(/^\n+|\n+$/, "", impl_code_val)
+function extract_line(val) {
+    line_text = val
+    sub(/^.*\(Line: /, "", line_text)
+    sub(/\).*$/, "", line_text)
+    return line_text + 0
+}
 
+function extract_file(val) {
+    sub(/ \(Line: [0-9]+\)$/, "", val)
+    return val
+}
+
+function output_record() {
+    gsub(/^\n+|\n+$/, "", reg_code_val)
+    gsub(/^\n+|\n+$/, "", impl_code_val)
+
+    if (record_type == "ajax" && action_val != "") {
         printf "{\"ajaxEndpoint\":{\"action\":\"%s\",\"access\":\"%s\",\"callback\":\"%s\",\"file\":\"%s\",\"line\":%d},\"registrationCode\":\"%s\",\"callbackImplementation\":\"%s\"}\n", \
             escape_json(action_val), \
             escape_json(access_val), \
@@ -32,8 +44,21 @@ function output_record() {
             line_val, \
             escape_json(reg_code_val), \
             escape_json(impl_code_val)
+    } else if (record_type == "rest" && namespace_val != "") {
+        printf "{\"restEndpoint\":{\"namespace\":\"%s\",\"route\":\"%s\",\"methods\":\"%s\",\"callback\":\"%s\",\"file\":\"%s\",\"line\":%d},\"registrationCode\":\"%s\",\"callbackImplementation\":\"%s\"}\n", \
+            escape_json(namespace_val), \
+            escape_json(route_val), \
+            escape_json(methods_val), \
+            escape_json(callback_val), \
+            escape_json(file_val), \
+            line_val, \
+            escape_json(reg_code_val), \
+            escape_json(impl_code_val)
     }
-    action_val = ""; access_val = ""; callback_val = ""; file_val = ""; line_val = 0
+
+    record_type = ""; action_val = ""; access_val = ""; callback_val = ""
+    namespace_val = ""; route_val = ""; methods_val = ""
+    file_val = ""; line_val = 0
     reg_code_val = ""; impl_code_val = ""
     current_section = ""
     first_reg_line = 1
@@ -42,7 +67,15 @@ function output_record() {
 
 /^=== AJAX Endpoint ===/ {
     output_record()
-    current_section = "ajax_details"
+    record_type = "ajax"
+    current_section = "details"
+    next
+}
+
+/^=== REST Endpoint ===/ {
+    output_record()
+    record_type = "rest"
+    current_section = "details"
     next
 }
 
@@ -59,21 +92,20 @@ function output_record() {
 }
 
 current_section != "" {
-    if (current_section == "ajax_details") {
-        if (sub(/^Action: /, ""))                { action_val = $0 }
-        else if (sub(/^Access: /, ""))           { access_val = $0 }
-        else if (sub(/^Callback: /, ""))         { callback_val = $0 }
+    if (current_section == "details") {
+        if (sub(/^Action: /, ""))     { action_val = $0 }
+        else if (sub(/^Access: /, ""))     { access_val = $0 }
+        else if (sub(/^Namespace: /, ""))  { namespace_val = $0 }
+        else if (sub(/^Route: /, ""))      { route_val = $0 }
+        else if (sub(/^Methods: /, ""))    { methods_val = $0 }
+        else if (sub(/^Callback: /, ""))   { callback_val = $0 }
         else if (sub(/^File: /, "")) {
-            # Extract line number in POSIX-compatible way
-            line_val = 0
             if ($0 ~ /\(Line: [0-9]+\)/) {
-                line_text = $0
-                sub(/^.*\(Line: /, "", line_text)
-                sub(/\)$/, "", line_text)
-                line_val = line_text + 0
+                line_val = extract_line($0)
+                file_val = extract_file($0)
+            } else {
+                file_val = $0
             }
-            sub(/ \(Line: [0-9]+\)$/, "", $0)
-            file_val = $0
         }
     } else if (current_section == "registration_code") {
         if (first_reg_line && $0 ~ /^[ \t]*$/) { next }

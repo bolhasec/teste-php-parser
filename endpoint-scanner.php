@@ -10,7 +10,7 @@ use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\Node\Stmt\ClassMethod;
 
-$plugin_path = __DIR__;
+$plugin_path = __DIR__ . '/plugin';
 $output_dir = __DIR__ . '/endpoint-reports';
 
 // Create output directory
@@ -33,11 +33,7 @@ class ClassTrackerVisitor extends NodeVisitorAbstract {
         }
     }
     
-    public function leaveNode(Node $node) {
-        if ($node instanceof Node\Stmt\Class_) {
-            #$this->currentClass = null;
-        }
-    }
+
 }
 
 $parser = (new ParserFactory)->createForNewestSupportedVersion();
@@ -101,7 +97,8 @@ foreach ($iterator as $file) {
                     $ast
                 );
                 
-                $filename = sanitize_filename("rest-{$endpoint['namespace']}-{$endpoint['route']}.txt");
+                $random_int = random_int(1000, 9999);
+                $filename = sanitize_filename("rest-{$endpoint['namespace']}-{$endpoint['route']}-{$random_int}.txt");
                 file_put_contents(
                     "$output_dir/$filename",
                     "=== REST Endpoint ===\n" .
@@ -193,7 +190,6 @@ function parse_callback($node, $currentClass = null) {
         // ⚠️ Fallback to prevent infinite loop
         return '[Array Callback]';
     }
-    echo $currentClass;
     return get_argument_value($node, $currentClass);
 }
 
@@ -241,9 +237,12 @@ function find_callback_source($callback, $filepath, $ast) {
     if (str_contains($callback, '::')) {
         [$class, $method] = explode('::', $callback);
         $nodes = $nodeFinder->find($ast, function($node) use ($class, $method) {
+            $parent = $node->getAttribute('parent');
             return $node instanceof ClassMethod &&
                    $node->name->toString() === $method &&
-                   $node->getAttribute('parent')->name->toString() === $class;
+                   $parent instanceof Node\Stmt\Class_ &&
+                   $parent->name !== null &&
+                   $parent->name->toString() === $class;
         });
     } else {
         $nodes = $nodeFinder->find($ast, function($node) use ($callback) {
@@ -256,6 +255,7 @@ function find_callback_source($callback, $filepath, $ast) {
 }
 
 function sanitize_filename($name) {
+    $name = preg_replace('/\.txt$/', '', $name);
     return preg_replace('/[^a-zA-Z0-9\-_]/', '_', $name) . '.txt';
 }
 
